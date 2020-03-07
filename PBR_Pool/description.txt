@@ -1,0 +1,13 @@
+制作一个池塘Texture。具有流动水效果
+
+Input: 
+
+Rock texture : T_GDC_LargeVolcanicRock_001_D2_R
+Grass texture : T_CleanGrass_D
+Alpha to blend rock and grass : T_Clouds01
+Alpha pond : T_Pond
+Water normals : T_Water_N
+Rock normals : T_GDC_LargeVolcanicRock_001_N
+Grass normals : T_CleanGrass_N
+
+
