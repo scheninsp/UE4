@@ -1,0 +1,3 @@
+使用 Masked + Two Sided Foliage 制作草
+
+注意Static Mesh的制作
