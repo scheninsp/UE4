@@ -1,5 +1,7 @@
 #include "TypedImage.h"
 
-void main() {
+int main() {
 	TypedImage* typedImage = new TypedImage();
+
+	return 0;
 }

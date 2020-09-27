@@ -11,3 +11,13 @@ std::uint8_t *TypedImage::buffer() {
 void TypedImage::clear() {
 	data = std::vector<std::uint8_t>(width*height*bytespp, 0);
 }
+
+bool TypedImage::read_tga_file(const std::string filename) {
+	return true;
+}
+
+
+bool TypedImage::load_rle_data(std::ifstream &in) {
+	return true;
+}
+
