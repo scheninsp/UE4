@@ -26,7 +26,7 @@ struct TGAColor {
 	std::uint8_t bgra[4] = { 0,0,0,0 };
 	std::uint8_t bytespp = { 0 };
 
-	//TGAColor() = default;
+	TGAColor() = default;
 	TGAColor(const std::uint8_t R, const std::uint8_t G, const std::uint8_t B, const std::uint8_t A = 255) : bgra{ B,G,R,A }, bytespp(4) {};
 	TGAColor(const std::uint8_t* p, const std::uint8_t bpp) : bytespp(bpp) {
 		for (int i = 0; i < bpp; i++) {
@@ -58,12 +58,20 @@ protected:
 	bool load_rle_data(std::ifstream &in);
 
 public:
+	enum Format{GRAYSCALE=1, RGB=3, RGBA=4};  //bytespp of each format
+
 	TypedImage();
 	TypedImage(const int w, const int h, const int bytespp);
 	std::uint8_t *buffer();
 	void clear();
 
 	bool read_tga_file(const std::string filename);
+
+	void flip_vertically();
+	void flip_horizontally();
+
+	TGAColor get(const int col, const int row) const;
+	void set(const int col, const int row, const TGAColor &c);
 };
 
 #endif
