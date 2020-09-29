@@ -72,6 +72,10 @@ public:
 
 	TGAColor get(const int col, const int row) const;
 	void set(const int col, const int row, const TGAColor &c);
+
+	bool write_tga_file(const std::string filename, const bool vflip, const bool rle) const;
+	bool unload_rle_data(std::ofstream &out) const;
+
 };
 
 #endif
