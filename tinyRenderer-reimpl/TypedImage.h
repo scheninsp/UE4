@@ -5,7 +5,7 @@
 #include<vector>
 #include<algorithm>  //std::min, std::max
 
-#pragma(push,1)
+#pragma pack(push,1)
 struct TGA_Header {
 	std::uint8_t  idlength{};
 	std::uint8_t  colormaptype{};
@@ -20,7 +20,7 @@ struct TGA_Header {
 	std::uint8_t  bitsperpixel{};
 	std::uint8_t  imagedescriptor{};
 };
-#pragma(pop)
+#pragma pack(pop)
 
 struct TGAColor {
 	std::uint8_t bgra[4] = { 0,0,0,0 };
@@ -56,6 +56,7 @@ protected:
 	int bytespp;   //bytes per pixel
 
 	bool load_rle_data(std::ifstream &in);
+	bool unload_rle_data(std::ofstream &out) const;
 
 public:
 	enum Format{GRAYSCALE=1, RGB=3, RGBA=4};  //bytespp of each format
@@ -73,8 +74,7 @@ public:
 	TGAColor get(const int col, const int row) const;
 	void set(const int col, const int row, const TGAColor &c);
 
-	bool write_tga_file(const std::string filename, const bool vflip, const bool rle) const;
-	bool unload_rle_data(std::ofstream &out) const;
+	bool write_tga_file(const std::string filename, const bool vflip=true, const bool rle=true) const;
 
 };
 

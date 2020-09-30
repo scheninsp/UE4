@@ -8,13 +8,13 @@ TypedImage::TypedImage(const int w, const int h, const int bpp) :
 				width(w), height(h), bytespp(bpp), data(w * h * bpp, 0) {}
 
 TGAColor TypedImage::get(const int col, const int row) const {
-	if (!data.size() || row < 0 || row >= height || col<0 || col>width) { return {}; }
+	if (!data.size() || row < 0 || row >= height || col<0 || col>=width) { return {}; }
 
 	return TGAColor(data.data() + (col + row * width)*bytespp, bytespp);
 };
 
 void TypedImage::set(const int col, const int row, const TGAColor &c) {
-	if (!data.size() || row < 0 || row >= height || col<0 || col>width) { return; }
+	if (!data.size() || row < 0 || row >= height || col<0 || col>=width) { return; }
 
 	memcpy(data.data() + (col + row * width)*bytespp, c.bgra, bytespp) ;   //data saved as bgra
 };
@@ -170,7 +170,7 @@ bool TypedImage::write_tga_file(const std::string filename, const bool vflip, co
 	header.width = width;
 	header.height = height;
 	header.datatypecode = (bytespp == GRAYSCALE ? (rle ? 11 : 3) : (rle ? 10 : 2));
-	header.imagedescriptor = vflip ? 0x00 : 0x20; // top-left or bottom-left origin
+	header.imagedescriptor = vflip ? 0x00 : 0x20; // 0x00:bottom-left origin, 0x20: top-left origin
 	out.write(reinterpret_cast<const char *>(&header), sizeof(header));
 	if (!out.good()) {
 		out.close();

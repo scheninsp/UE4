@@ -24,5 +24,13 @@
     <ClCompile Include="TypedImage.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="geometry.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="geometry.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
