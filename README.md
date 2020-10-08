@@ -2,4 +2,4 @@
 Unreal Projects  
 
 #tinyRenderer  
-A self-implemented version of "tinyRenderer @ ssloy"  
+A self-implemented version of "tinyRenderer@ssloy"  
