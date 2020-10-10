@@ -59,6 +59,15 @@ int Model::nfaces() const {
     return facet_vrt_.size()/3;
 }
 
+std::vector<int> Model::face(const int iface) const {
+	std::vector<int> ret;
+	for (int i = 0; i < 3; i++) {
+		ret.push_back(facet_vrt_[iface * 3 + i]);
+	}
+	return ret;
+}
+
+
 vec3 Model::vert(const int i) const {
     return verts_[i];
 }

@@ -1,6 +1,7 @@
+#include <algorithm>
 #include "drawfunc.h"
 
-/* unoptimized 1 
+/* unoptimized1 line draw 
 void line(int x0, int y0, int x1, int y1, TypedImage &img, TGAColor c) {
 	//to optimize : 
 	//1 - border check
@@ -46,6 +47,7 @@ void line(int x0, int y0, int x1, int y1, TypedImage &img, TGAColor c) {
 };
 */
 
+/* optimized line draw */
 void line(int x0, int y0, int x1, int y1, TypedImage &img, TGAColor c) {
 	//to optimize : 
 	//1 - border check
@@ -93,7 +95,7 @@ void line(int x0, int y0, int x1, int y1, TypedImage &img, TGAColor c) {
 };
 
 
-/* unoptimized 1 */
+/* unoptimized1 triangle draw
 void triangle(vec2 t0, vec2 t1, vec2 t2, TypedImage &img, TGAColor c) {
 	
 	//sort t0 ~ t2 as y coordinate ascending order
@@ -147,3 +149,34 @@ void triangle(vec2 t0, vec2 t1, vec2 t2, TypedImage &img, TGAColor c) {
 		line(tx_left, ty, tx_right, ty, img, white);
 	}
 };
+*/
+
+/* optimizied triangle draw */
+vec3 barycentric(vec2 *pts, vec2 P) {
+	vec3 u = cross(vec3(pts[2][0] - pts[0][0], pts[1][0] - pts[0][0], pts[0][0] - P[0]), vec3(pts[2][1] - pts[0][1], pts[1][1] - pts[0][1], pts[0][1] - P[1]));
+	/* `pts` and `P` has integer value as coordinates
+	   so `abs(u[2])` < 1 means `u[2]` is 0, that means
+	   triangle is degenerate, in this case return something with negative coordinates */
+	if (std::abs(u[2]) < 1) return vec3(-1, 1, 1);
+	return vec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+}
+
+void triangle(vec2 *pts, TypedImage &image, TGAColor color) {
+	vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
+	vec2 bboxmax(0, 0);
+	vec2 clamp(image.get_width() - 1, image.get_height() - 1);
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 2; j++) {
+			bboxmin[j] = std::max(0.0, std::min(bboxmin[j], pts[i][j]));
+			bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+		}
+	}
+	vec2 P;
+	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
+		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
+			vec3 bc_screen = barycentric(pts, P);
+			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
+			image.set(P.x, P.y, color);
+		}
+	}
+}

@@ -41,7 +41,7 @@ int main() {
 
 	*/
 
-	/* test3 triangle */
+	/* test3 triangle 
 
 	int width = 256;
 	int height = 256;
@@ -50,10 +50,35 @@ int main() {
 	vec2 t0[3] = { vec2(10, 70),   vec2(50, 160),  vec2(70, 80) };
 	vec2 t1[3] = { vec2(180, 50),  vec2(150, 1),   vec2(70, 180) };
 	vec2 t2[3] = { vec2(180, 150), vec2(120, 160), vec2(130, 180) };
-	triangle(t0[0], t0[1], t0[2], image, red);
-	triangle(t1[0], t1[1], t1[2], image, white);
-	triangle(t2[0], t2[1], t2[2], image, green);
+	//triangle(t0[0], t0[1], t0[2], image, red);
+	//triangle(t1[0], t1[1], t1[2], image, white);
+	//triangle(t2[0], t2[1], t2[2], image, green);
 
+	triangle(t0, image, red);
+	triangle(t1, image, white);
+	triangle(t2, image, green);
+	*/
+
+
+
+	/*test4 flat shading of model*/
+
+	int width = 512;
+	int height = 512;
+	TypedImage image(width, height, TypedImage::RGB);
+
+	std::string filename = "../obj/african_head/african_head.obj";
+	Model* model = new Model(filename);
+
+	for (int i = 0; i < model->nfaces(); i++) {
+		std::vector<int> face = model->face(i);
+		vec2 screen_coords[3];
+		for (int j = 0; j < 3; j++) {
+			vec3 world_coords = model->vert(face[j]);
+			screen_coords[j] = vec2((world_coords.x + 1.)*width / 2., (world_coords.y + 1.)*height / 2.);
+		}
+		triangle(screen_coords, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
+	}
 
 	image.write_tga_file("output_test.tga");
 	return 0;
