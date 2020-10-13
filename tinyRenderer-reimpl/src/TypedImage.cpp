@@ -55,7 +55,7 @@ bool TypedImage::read_tga_file(const std::string filename) {
 	height = header.height;
 	bytespp = header.bitsperpixel>>3;  // >>3 = /8
 
-	if (width <= 0 || height <= 0 || (bytespp != GRAYSCALE || bytespp != RGB || bytespp != RGBA)) {
+	if (width <= 0 || height <= 0 || (bytespp != GRAYSCALE && bytespp != RGB && bytespp != RGBA)) {
 		std::cerr << "image format error\n" << std::endl; in.close(); return false;
 	}
 

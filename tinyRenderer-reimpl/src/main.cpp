@@ -61,13 +61,13 @@ int main() {
 
 
 
-	/*test4 flat shading of model*/
+	/*test4 flat shading of model
 
 	int width = 512;
 	int height = 512;
 	TypedImage image(width, height, TypedImage::RGB);
 
-	std::string filename = "../obj/african_head/african_head.obj";
+	std::string filename = "./obj/african_head/african_head.obj";
 	Model* model = new Model(filename);
 
 	for (int i = 0; i < model->nfaces(); i++) {
@@ -79,7 +79,55 @@ int main() {
 		}
 		triangle(screen_coords, image, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
 	}
+	*/
+	
 
-	image.write_tga_file("output_test.tga");
+	/* test5 z buffer */
+	std::string filename = "obj/african_head/african_head.obj";
+	Model* model = new Model(filename);
+
+	const int WIDTH = 1024;
+	const int HEIGHT = 1024;
+	const int WxH = WIDTH * HEIGHT;
+
+	//zbuffer, closest to screen with maximum z
+	TypedImage zbuffer_img(WIDTH, HEIGHT, TypedImage::RGB);
+	float* zbuffer = new float[WxH];   //1-dim, row first
+	for (int i = 0; i < WxH; i++) {
+		zbuffer[i] = -std::numeric_limits<float>::max();  //z has minus value!
+	}
+
+	double zmin = std::numeric_limits<double>::max();
+	double zmax = -std::numeric_limits<double>::max();
+
+	for (int i = 0; i < model->nverts(); i++) {  // find min max z
+		if (model->vert(i).z < zmin) zmin = model->vert(i).z;
+		if (model->vert(i).z > zmax) zmax = model->vert(i).z;
+	} 
+
+	for (int i = 0; i < model->nfaces(); i++) {
+		std::vector<int> face = model->face(i);
+		vec3 screen_coords[3];
+		double zface = std::numeric_limits<double>::min();
+		for (int j = 0; j < 3; j++) {
+			vec3 world_coords = model->vert(face[j]);
+			screen_coords[j] = world2screen(world_coords, WIDTH, HEIGHT);
+			if (zface < world_coords.z) { zface = world_coords.z; }
+		}
+		float intensity =  (zface - zmin) / (zmax - zmin);
+		//float intensity = 1;
+
+		triangle(screen_coords, zbuffer, zbuffer_img, TGAColor(intensity * 255, intensity * 255, intensity * 255, 255));
+		//triangle(screen_coords, zbuffer, zbuffer_img, TGAColor(rand() % 255, rand() % 255, rand() % 255, 255));
+	}
+
+
+	delete zbuffer;
+
+	//-------------------------------------------------------
+	//image.write_tga_file("output_test.tga");
+	zbuffer_img.write_tga_file("output_render_buffer1.tga");
+	
 	return 0;
+
 }

@@ -94,6 +94,9 @@ void line(int x0, int y0, int x1, int y1, TypedImage &img, TGAColor c) {
 
 };
 
+void line(vec2 p1, vec2 p2, TypedImage &img, TGAColor c) {
+	line(p1[0], p1[1], p2[0], p2[1], img, c);
+};
 
 /* unoptimized1 triangle draw
 void triangle(vec2 t0, vec2 t1, vec2 t2, TypedImage &img, TGAColor c) {
@@ -161,22 +164,80 @@ vec3 barycentric(vec2 *pts, vec2 P) {
 	return vec3(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
 }
 
-void triangle(vec2 *pts, TypedImage &image, TGAColor color) {
-	vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);
-	vec2 bboxmax(0, 0);
-	vec2 clamp(image.get_width() - 1, image.get_height() - 1);
+vec3 barycentric(const vec2 tri[3], const vec2 P) {
+	mat<3, 3> ABC = { {embed<3>(tri[0]), embed<3>(tri[1]), embed<3>(tri[2])} };
+	if (ABC.det() < 1e-3) return vec3(-1, 1, 1); // for a degenerate triangle generate negative coordinates, it will be thrown away by the rasterizator
+	return ABC.invert_transpose() * embed<3>(P);
+}
+
+vec3 barycentric(vec3 pts0, vec3 pts1, vec3 pts2, vec3 P) {
+	vec2 tri[3] = {vec2(pts0[0], pts0[1]),vec2(pts1[0], pts1[1]), vec2(pts2[0], pts2[1]) };  // triangle screen coordinates after  perps. division
+	vec2 P2 = vec2(P[0], P[1]);
+	return barycentric(tri, P2);
+}
+
+
+void triangle(vec2 *pts, TypedImage &image, TGAColor c) {
+	//find bounding box
+	vec2 bboxmin(image.get_width() - 1, image.get_height() - 1);   //start value of min
+	vec2 bboxmax(0, 0);   //start value of max
+	vec2 clamp(image.get_width() - 1, image.get_height() - 1);  //clamp bboxmax
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 2; j++) {
 			bboxmin[j] = std::max(0.0, std::min(bboxmin[j], pts[i][j]));
 			bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
 		}
 	}
+
+	//find barycentric point of each pixel inside bbox
 	vec2 P;
 	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
 		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
 			vec3 bc_screen = barycentric(pts, P);
 			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
-			image.set(P.x, P.y, color);
+			image.set(P.x, P.y, c);
 		}
 	}
+}
+
+//draw zbuffer 
+void triangle(vec3 *pts, float *zbuffer, TypedImage &image, TGAColor c) {
+	const int width = image.get_width();
+	const int height = image.get_height();
+	
+	//find bounding box
+	vec2 bboxmin(width - 1, height - 1);   //start value of min
+	vec2 bboxmax(0, 0);   //start value of max
+	vec2 clamp(width - 1, height - 1);  //clamp bboxmax
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 2; j++) {
+			bboxmin[j] = std::max(0.0, std::min(bboxmin[j], pts[i][j]));
+			bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+		}
+	}
+
+	//find barycentric point of each pixel inside bbox
+	vec3 P;
+	for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
+		for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
+			vec3 bc_screen = barycentric(pts[0], pts[1], pts[2], P);  
+			//though using vec3, only the (x,y) coordinates are useful
+
+			if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0) continue;
+			
+			//using barycentric coordinates to calculate P.z
+			P.z = 0;
+			for (int i = 0; i < 3; i++) { P.z += bc_screen[i] * pts[i][2]; }
+			if (zbuffer[static_cast<int>(P.x + P.y*width)] < P.z) {
+				zbuffer[static_cast<int>(P.x + P.y*width)] = P.z;
+				image.set(P.x, P.y, c);   //draw zbuffer
+			}
+			
+		}
+	}
+}
+
+
+vec3 world2screen(const vec3 world_coords, const int width, const int height){
+	return vec3(int((world_coords.x + 1.)*width / 2. + .5), int((world_coords.y + 1.)*height / 2. + .5), world_coords.z);
 }
